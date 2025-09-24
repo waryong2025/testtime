@@ -505,16 +505,45 @@
         }
 
         function calculateWorkdays() {
+            const year = parseInt(document.getElementById('yearInput').value);
+            const month = parseInt(document.getElementById('monthInput').value);
+            
             const workdayCounts = {};
             const shiftCounts = {};
             const allNames = new Set();
             
-            // 모든 근무자 이름 수집 및 근무일수, 교대 횟수 계산
-            for (const dateString in scheduleData) {
-                const dayWorkdays = new Set(); // 한 날짜에 한 근무자가 두 번 근무하면 1일로 계산
-                for (const colId in scheduleData[dateString]) {
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0);
+
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateString = d.toISOString().slice(0, 10);
+                const dayOfWeek = d.getDay();
+                
+                let dailyNames = {};
+                VEHICLE_COLUMNS.forEach(colId => {
+                    let appliedNames = [{ text: '', bold: false }, { text: '', bold: false }];
+                    
+                    if (tempScheduleData[dateString] && tempScheduleData[dateString][colId]) {
+                        appliedNames = tempScheduleData[dateString][colId];
+                    }
+                    else {
+                        const recurringKey = `${dayOfWeek}-${colId}`;
+                        if (fixedScheduleData[recurringKey]) {
+                            for (const entry of fixedScheduleData[recurringKey]) {
+                                if (new Date(dateString) >= new Date(entry.dateString)) {
+                                    appliedNames = entry.names;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    dailyNames[colId] = appliedNames;
+                });
+                
+                const dayWorkdays = new Set();
+                for (const colId in dailyNames) {
                     if (colId !== '비고') {
-                        scheduleData[dateString][colId].forEach((item, index) => {
+                        dailyNames[colId].forEach((item, index) => {
                             const name = item.text.trim();
                             if (name !== '') {
                                 allNames.add(name);
@@ -539,7 +568,6 @@
                 });
             }
             
-            // 이름별 근무일수 및 교대 횟수 데이터 병합
             const combinedData = Object.keys(workdayCounts).map(name => ({
                 name: name,
                 workdays: workdayCounts[name],
@@ -547,11 +575,9 @@
                 afternoonShifts: (shiftCounts[name] && shiftCounts[name].오후) || 0
             }));
             
-            // 결과 정렬 (근무일수 내림차순)
             combinedData.sort((a, b) => b.workdays - a.workdays);
 
-            // 새 창에 결과 표시
-            const title = document.getElementById('tableCaption').textContent.replace('근무현황표', '근무일수');
+            const title = `${year}년 ${month}월 근무일수`;
             const tableHTML = `
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
@@ -559,7 +585,7 @@
                             <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">이름</th>
                             <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">오전</th>
                             <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">오후</th>
-                            <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">근무일수</th>
+                            <th style="width: 25%; padding: 8px; border: 1px solid #ddd;">총 근무일수</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -598,6 +624,11 @@
                             }
                             @media print {
                                 .print-button { display: none; }
+                                html, body {
+                                    height: 100%;
+                                    width: 100%;
+                                    margin: 0;
+                                }
                             }
                         </style>
                     </head>
@@ -640,4 +671,3 @@
     </script>
 </body>
 </html>
-           
