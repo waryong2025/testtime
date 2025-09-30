@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>종로 08번 근무현황표 생성기</title>
+    <title>낙산운수 3-2번 근무현황표</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 10px;
             background-color: #f4f4f4; color: #333;
-            font-size: 12pt;
+            font-size: 14pt;
         }
         .controls {
             background-color: #fff;
@@ -18,25 +18,33 @@
             display: flex; flex-wrap: wrap; gap: 10px;
             align-items: center;
         }
-        .controls label { font-weight: bold; margin-right: 5px; }
+        .controls label { font-weight: bold; margin-right: 5px;
+        }
         .controls input[type="number"], .controls select {
             padding: 6px;
             border: 1px solid #ddd; border-radius: 4px;
             width: 70px; box-sizing: border-box;
         }
-        .controls input[type="radio"] { margin-left: 10px; }
+        .controls input[type="radio"] { margin-left: 10px;
+        }
         .controls button, .controls a.button-link {
             padding: 8px 15px;
             color: white; border: none; border-radius: 4px;
-            cursor: pointer; font-size: 15px; margin-right: 8px;
+            cursor: pointer; font-size: 17.5px; margin-right: 8px;
             text-decoration: none; display: inline-block; text-align: center; white-space: nowrap;
         }
-        .controls button { background-color: #007bff; }
-        .controls button:hover { background-color: #0056b3; }
-        .controls a.button-link { background-color: #17a2b8; }
-        .controls a.button-link:hover { background-color: #138496; }
-        .controls button.btn-danger { background-color: #dc3545; }
-        .controls button.btn-danger:hover { background-color: #c82333; }
+        .controls button { background-color: #007bff;
+        }
+        .controls button:hover { background-color: #0056b3;
+        }
+        .controls a.button-link { background-color: #17a2b8;
+        }
+        .controls a.button-link:hover { background-color: #138496;
+        }
+        .controls button.btn-danger { background-color: #dc3545;
+        }
+        .controls button.btn-danger:hover { background-color: #c82333;
+        }
         
         #scheduleContainer {
             background-color: white;
@@ -53,17 +61,21 @@
             padding: 6px; text-align: center;
             vertical-align: top; line-height: 1.1; word-break: keep-all;
             height: 38px; box-sizing: border-box;
-            font-size: 12pt;
+            font-size: 13pt;
         }
-        th { background-color: #f2f2f2; font-weight: bold; }
+        th { background-color: #f2f2f2; font-weight: bold;
+        }
         caption {
-            font-size: 1.2em;
+            font-size: 1.5em;
             margin-bottom: 10px; font-weight: bold;
             color: #333; text-decoration: underline;
         }
-        .sunday { background-color: #ffe0e0; }
-        .saturday { background-color: #e0e0ff; }
-        .holiday { background-color: #ffcccc; font-weight: bold; color: #cc0000; }
+        .sunday { background-color: #ffe0e0;
+        }
+        .saturday { background-color: #e0e0ff;
+        }
+        .holiday { background-color: #ffcccc; font-weight: bold; color: #cc0000;
+        }
         .edit-mode {
             position: relative;
             padding: 2px; display: flex; flex-direction: column;
@@ -81,18 +93,26 @@
             font-size: 0.7em; color: white; border: none;
             border-radius: 3px; cursor: pointer; white-space: nowrap;
         }
-        .edit-mode .cell-buttons button.btn-fixed { background-color: #28a745; }
-        .edit-mode .cell-buttons button.btn-temp { background-color: #ffc107; }
-        .edit-mode .cell-buttons button.btn-highlight-am { background-color: #ff8c00; }
-        .edit-mode .cell-buttons button.btn-highlight-pm { background-color: #ff8c00; }
-        .edit-mode button:disabled { cursor: not-allowed; opacity: 0.6; }
-        .edit-mode .cell-buttons button.btn-delete { background-color: #dc3545; }
+        .edit-mode .cell-buttons button.btn-fixed { background-color: #28a745;
+        }
+        .edit-mode .cell-buttons button.btn-temp { background-color: #ffc107;
+        }
+        .edit-mode .cell-buttons button.btn-highlight-am { background-color: #ff8c00;
+        }
+        .edit-mode .cell-buttons button.btn-highlight-pm { background-color: #ff8c00;
+        }
+        .edit-mode button:disabled { cursor: not-allowed; opacity: 0.6;
+        }
+        .edit-mode .cell-buttons button.btn-delete { background-color: #dc3545;
+        }
 
-        .name-entry { display: block; margin-top: 2px; margin-bottom: 2px; }
-        .name-entry.bold-name { font-weight: bold; }
+        .name-entry { display: block; margin-top: 2px; margin-bottom: 2px;
+        }
+        .name-entry.bold-name { font-weight: bold;
+        }
         /* 수정된 부분 */
         .hidden-x {
-            color: white; /* 텍스트를 흰색으로 만들어 배경색과 동일하게 만듭니다. */
+            color: white;
         }
         /* ----------- */
         table th:nth-child(1),
@@ -117,7 +137,8 @@
             max-width: 90%; max-height: 90%; overflow-y: auto;
             position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-        .modal-content h3 { margin-top: 0; }
+        .modal-content h3 { margin-top: 0;
+        }
         .close-button {
             position: absolute;
             right: 10px; top: 5px;
@@ -133,24 +154,29 @@
             border: 1px solid #ddd;
             padding: 8px; text-align: center;
         }
-        .count-table th { background-color: #f2f2f2; }
+        .count-table th { background-color: #f2f2f2;
+        }
         
         @media print {
             @page {
                 size: A4;
                 margin: 10mm;
+                margin-left: 15mm; /* A4 용지 인쇄 시 좌측 여백을 20mm로 설정 */
+                margin-right: 5mm; /* A4 용지 인쇄 시 우측 여백을 10mm로 설정 */
             }
             body {
                 background-color: white;
                 margin: 0; padding: 0;
                 -webkit-print-color-adjust: exact;
             }
-            .controls { display: none; }
-            #scheduleContainer { box-shadow: none; margin: 0; padding: 0; }
+            .controls { display: none;
+            }
+            #scheduleContainer { box-shadow: none; margin: 0; padding: 0;
+            }
             table {
                 width: 100%;
                 min-width: unset;
-                font-size: 0.7em;
+                font-size: 0.8em;
                 border: 1px solid #000;
                 table-layout: fixed;
             }
@@ -176,16 +202,20 @@
                 position: static;
                 background-color: transparent;
             }
-            .modal .close-button { display: none; }
+            .modal .close-button { display: none;
+            }
         }
         @media screen and (max-width: 768px) {
             .controls { flex-direction: column;
                 align-items: stretch; }
             .controls input[type="number"], .controls select, .controls button, .controls a.button-link { width: 100%;
                 box-sizing: border-box; margin: 5px 0; }
-            #scheduleContainer { padding: 5px; }
-            table { font-size: 0.8em; }
-            th, td { padding: 4px; }
+            #scheduleContainer { padding: 5px;
+            }
+            table { font-size: 0.8em;
+            }
+            th, td { padding: 4px;
+            }
         }
     </style>
 </head>
@@ -202,16 +232,15 @@
         <label for="option2">16일 ~ 말일</label>
         
         <button onclick="generateSchedule()">생성</button>
-        <button onclick="calculateWorkdays()">08번 근무일수계산</button>
+        <button onclick="calculateWorkdays()">3-1번 근무일수계산</button>
         <button onclick="printPage()">인쇄</button>
         <button class="btn-danger" onclick="resetAllFixedSchedules()">전체 고정 초기화</button>
-        <a href="https://waryong2025.github.io/townbus/" class="button-link" target="_blank">08번 배차표</a>
-        <a href="https://waryong2025.github.io/timeman/" class="button-link" target="_blank">07번 배차표</a>
-        <a href="https://waryong2025.github.io/time" class="button-link" target="_blank">07번 근무현황생성</a>
+        <a href="https://github.com/waryong2025/mainwaryong" class="button-link" target="_blank">3-1번 근무현황표</a>
+    
     </div>
     <div id="scheduleContainer">
         <table>
-            <caption id="tableCaption">종로 08번 2025년 9월 16일 ~ 30일까지 근무현황표</caption>
+            <caption id="tableCaption">낙산운수 3-2번 2025년 9월 16일 ~ 30일까지 근무현황표</caption>
             <thead id="scheduleHeader">
             </thead>
             <tbody id="scheduleBody">
@@ -228,14 +257,12 @@
     </div>
 
     <script>
-        const VEHICLE_COLUMNS = ['3611호', '5510호', '3615호', '스피아', '3612호', '6201호', '5504호', '5535호', '5536호', '3614호', '비고'];
-
-        const STORAGE_KEY_FIXED = 'jongro08FixedSchedule';
-        const STORAGE_KEY_TEMP = 'jongro08TempSchedule';
+        const VEHICLE_COLUMNS = ['5941', '3270', '5943', '5942', '비고'];
+        const STORAGE_KEY_FIXED = 'naksanjongro3-2FixedSchedule';
+        const STORAGE_KEY_TEMP = 'naksanjongro3-2TempSchedule';
 
         let fixedScheduleData = JSON.parse(localStorage.getItem(STORAGE_KEY_FIXED)) || {};
         let tempScheduleData = JSON.parse(localStorage.getItem(STORAGE_KEY_TEMP)) || {};
-        
         let scheduleData = {};
         
         function getDayName(dayOfWeek) {
@@ -258,7 +285,7 @@
             if (!names || names.length === 0) return '';
             return names.map(item => {
                 const text = item.text.trim();
-                const display = text === '' ? 'X' : text;
+                const display = text === '' ? '.' : text;
                 const hiddenClass = text === '' ? ' hidden-x' : '';
                 return `<span class="name-entry${hiddenClass} ${item.bold ? 'bold-name' : ''}">${display}</span>`;
             }).join('');
@@ -276,7 +303,7 @@
             const currentNames = (scheduleData[dateString] && scheduleData[dateString][colId]) || [{ text: '', bold: false }, { text: '', bold: false }];
             const morningValue = currentNames[0] ? currentNames[0].text : '';
             const afternoonValue = currentNames[1] ? currentNames[1].text : '';
-            const isSunday3614 = (colId === '3614호' && dayOfWeek === 0);
+            const isSunday3614 = (colId === '3614' && dayOfWeek === 0);
 
             cell.classList.add('edit-mode');
             cell.dataset.colId = colId;
@@ -330,7 +357,7 @@
             const { colId, dayOfWeek, dateString } = cellElement.dataset;
             const namesToSave = getNamesAndBoldStateFromCell(cellElement);
 
-            if (colId === '3614호' && dayOfWeek === '0') {
+            if (colId === '3614' && dayOfWeek === '0') {
                 alert('일요일은 휴무이므로 저장할 수 없습니다.');
                 return;
             }
@@ -347,19 +374,16 @@
                 dateString: dateString,
                 names: namesToSave
             });
-
             // 3614호 근무 로테이션 추가
-            if (colId === '3614호' && dayOfWeek !== '0') { // 일요일 제외
+            if (colId === '3614' && dayOfWeek !== '0') { // 일요일 제외
                 const nextWeekDate = new Date(dateString);
                 nextWeekDate.setDate(nextWeekDate.getDate() + 7);
                 const nextWeekDateString = nextWeekDate.toISOString().slice(0, 10);
                 const nextWeekDayOfWeek = nextWeekDate.getDay();
-
                 const rotatedNames = [
                     namesToSave[1], // 오후 근무자가 다음 주 오전 근무자로
                     namesToSave[0]  // 오전 근무자가 다음 주 오후 근무자로
                 ];
-
                 const nextWeekRecurringKey = `${nextWeekDayOfWeek}-${colId}`;
                 if (!fixedScheduleData[nextWeekRecurringKey]) {
                     fixedScheduleData[nextWeekRecurringKey] = [];
@@ -452,14 +476,11 @@
             const headerHTML = `<tr><th style="width: 4%;">월일</th><th style="width: 4%;">요일</th>${VEHICLE_COLUMNS.map(c => `<th>${c}</th>`).join('')}</tr>`;
             scheduleHeader.innerHTML = headerHTML;
             scheduleBody.innerHTML = '';
-            
             const startDate = new Date(year, month - 1, selectedOption === '1' ? 1 : 16);
             const endDate = (selectedOption === '1') ? new Date(year, month - 1, 15) : new Date(year, month, 0);
-            
-            tableCaption.textContent = `종로 08번 ${year}년 ${month}월 ${startDate.getDate()}일 ~ ${endDate.getDate()}일까지 근무현황표`;
+            tableCaption.textContent = `낙산운수 3-2번 ${year}년 ${month}월 ${startDate.getDate()}일 ~ ${endDate.getDate()}일까지 근무현황표`;
             
             scheduleData = {};
-
             for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                 const dateString = d.toISOString().slice(0, 10);
                 const dayOfWeek = d.getDay();
@@ -511,10 +532,8 @@
             const workdayCounts = {};
             const shiftCounts = {};
             const allNames = new Set();
-            
             const startDate = new Date(year, month - 1, 1);
             const endDate = new Date(year, month, 0);
-
             for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                 const dateString = d.toISOString().slice(0, 10);
                 const dayOfWeek = d.getDay();
@@ -539,7 +558,6 @@
                     }
                     dailyNames[colId] = appliedNames;
                 });
-                
                 const dayWorkdays = new Set();
                 for (const colId in dailyNames) {
                     if (colId !== '비고') {
@@ -574,7 +592,6 @@
                 morningShifts: (shiftCounts[name] && shiftCounts[name].오전) || 0,
                 afternoonShifts: (shiftCounts[name] && shiftCounts[name].오후) || 0
             }));
-            
             combinedData.sort((a, b) => b.workdays - a.workdays);
 
             const title = `${year}년 ${month}월 근무일수`;
