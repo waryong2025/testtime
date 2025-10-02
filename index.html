@@ -424,18 +424,7 @@
             const { colId, dayOfWeek, dateString } = cellElement.dataset;
             const recurringKey = `${dayOfWeek}-${colId}`;
 
-            // 고정 스케줄에서 삭제
-            if (fixedScheduleData[recurringKey]) {
-                fixedScheduleData[recurringKey] = fixedScheduleData[recurringKey].filter(
-                    entry => entry.dateString !== dateString
-                );
-                if (fixedScheduleData[recurringKey].length === 0) {
-                    delete fixedScheduleData[recurringKey];
-                }
-                localStorage.setItem(STORAGE_KEY_FIXED, JSON.stringify(fixedScheduleData));
-            }
-
-            // 임시 스케줄에서 삭제
+            // 임시 명단 삭제
             if (tempScheduleData[dateString] && tempScheduleData[dateString][colId]) {
                 delete tempScheduleData[dateString][colId];
                 if (Object.keys(tempScheduleData[dateString]).length === 0) {
@@ -443,6 +432,32 @@
                 }
                 localStorage.setItem(STORAGE_KEY_TEMP, JSON.stringify(tempScheduleData));
             }
+
+            // 고정 명단 처리: 삭제 시점 이후의 자동 생성 명단을 지우기 위해,
+            // 해당 날짜에 빈 명단으로 고정 스케줄을 저장합니다.
+            // 이렇게 하면 이후 날짜에 기존 고정 명단이 나타나지 않습니다.
+            const mostRecentFixedEntry = fixedScheduleData[recurringKey] ? fixedScheduleData[recurringKey][0] : null;
+            if (mostRecentFixedEntry && mostRecentFixedEntry.dateString === dateString) {
+                // 이전에 '고정'으로 저장된 항목을 삭제하는 경우,
+                // 해당 항목을 삭제하고 이후 항목이 없으면 키를 지웁니다.
+                fixedScheduleData[recurringKey].shift();
+                if (fixedScheduleData[recurringKey].length === 0) {
+                    delete fixedScheduleData[recurringKey];
+                }
+            } else {
+                // 자동으로 생성된 명단을 삭제하는 경우,
+                // 해당 날짜에 빈 명단으로 새로운 고정 스케줄을 추가합니다.
+                // 이는 이 날짜 이후에 나타나는 모든 고정 스케줄을 덮어씁니다.
+                if (!fixedScheduleData[recurringKey]) {
+                    fixedScheduleData[recurringKey] = [];
+                }
+                fixedScheduleData[recurringKey].unshift({ // unshift를 사용하여 맨 앞에 추가
+                    dateString: dateString,
+                    names: [{ text: '', bold: false }, { text: '', bold: false }]
+                });
+            }
+
+            localStorage.setItem(STORAGE_KEY_FIXED, JSON.stringify(fixedScheduleData));
             
             generateSchedule();
         }
@@ -660,12 +675,34 @@
         }
 
         function printPage() {
-            document.querySelectorAll('.edit-mode').forEach(cell => {
-                const { colId, dateString } = cell.dataset;
-                const originalNames = (scheduleData[dateString] && scheduleData[dateString][colId]) || [{ text: '', bold: false }, { text: '', bold: false }];
-                cell.classList.remove('edit-mode');
-                cell.innerHTML = renderCellContent(originalNames);
-            });
+            const editCell = document.querySelector('.edit-mode');
+            if (editCell) {
+                const { colId, dateString } = editCell.dataset;
+                const originalNames = scheduleData[dateString]?.[colId] || [{ text: '', bold: false }, { text: '', bold: false }];
+                editCell.classList.remove('edit-mode');
+                editCell.innerHTML = renderCellContent(originalNames);
+            }
+
+            const originalTitle = document.title;
+            const captionText = document.getElementById('tableCaption').textContent;
+            const matches = captionText.match(/(\d{4})년 (\d{1,2})월 (\d{1,2})일 ~ (\d{1,2})일까지/);
+
+            let newTitle = "낙산운수 3-2번 근무현황표";
+            if (matches) {
+                const year = matches[1];
+                const month = matches[2].padStart(2, '0');
+                const startDay = matches[3].padStart(2, '0');
+                const endDay = matches[4].padStart(2, '0');
+                newTitle = `낙산운수 3-2번 ${year}-${month} (${startDay}일-${endDay}일)`;
+            }
+
+            const handleAfterPrint = () => {
+                document.title = originalTitle;
+                window.removeEventListener('afterprint', handleAfterPrint);
+            };
+            window.addEventListener('afterprint', handleAfterPrint);
+
+            document.title = newTitle;
             window.print();
         }
 
