@@ -45,6 +45,12 @@
         }
         .controls button.btn-danger:hover { background-color: #c82333;
         }
+        /* 새로 추가된 녹색 계열 버튼 스타일 */
+        .controls button.btn-success { background-color: #28a745; 
+        }
+        .controls button.btn-success:hover { background-color: #1e7e34;
+        }
+        /* ------------------------------- */
         
         #scheduleContainer {
             background-color: white;
@@ -236,6 +242,7 @@
         <button onclick="printPage()">인쇄</button>
         <button class="btn-danger" onclick="resetAllFixedSchedules()">전체 고정 초기화</button>
         <a href="https://waryong2025.github.io/mainwaryong" class="button-link" target="_blank">3-1번 근무현황표</a>
+        <button class="btn-success" onclick="downloadBackupData()">3-2번근무백업데이타</button>
     
     </div>
     <div id="scheduleContainer">
@@ -479,6 +486,46 @@
                 alert("비밀번호 확인 후 신청하세요.");
             }
         }
+        
+        // 새로 추가된 데이터 백업 기능
+        function downloadBackupData() {
+            const fixedData = localStorage.getItem(STORAGE_KEY_FIXED) || 'No fixed schedule data found. (고정 근무표 데이터 없음)';
+            const tempData = localStorage.getItem(STORAGE_KEY_TEMP) || 'No temporary schedule data found. (임시 근무표 데이터 없음)';
+            
+            const now = new Date();
+            const dateString = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const datetimeLocal = now.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            
+            const backupContent = `
+=====================================================
+낙산운수 3-2번 근무현황 백업 데이터
+생성일시: ${datetimeLocal}
+=====================================================
+
+--- 고정 근무표 데이터 (Key: ${STORAGE_KEY_FIXED}) ---
+${fixedData}
+
+--- 임시 근무표 데이터 (Key: ${STORAGE_KEY_TEMP}) ---
+${tempData}
+`;
+
+            const filename = `nakasan_3-2_backup_${dateString}.txt`;
+
+            const blob = new Blob([backupContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert(`근무 백업 데이터가 '${filename}' 이름으로 저장되었습니다.`);
+        }
+        // ------------------------------------
 
         function generateSchedule() {
             const year = parseInt(document.getElementById('yearInput').value);
